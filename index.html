@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speech Recognition POC</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center h-screen">
+
+<div class="container mx-auto max-w-4xl text-center rounded-lg">
+    <textarea id="transcript" rows="5" class="w-full h-64 p-4 text-lg border rounded-lg shadow-md mb-4" placeholder="Aa..." autofocus></textarea>
+    <button id="toggleBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Start Listening</button>
+</div>
+
+<script>
+window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+window.onload = function() {
+    const transcriptTextarea = document.getElementById('transcript');
+    const toggleBtn = document.getElementById('toggleBtn');
+    let recognition = new window.SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = document.documentElement.langs;
+
+    let isListening = false;
+
+    toggleBtn.addEventListener('click', () => {
+        if (! isListening) {
+            recognition.start();
+            toggleBtn.textContent = 'Stop Listening';
+            isListening = true;
+        } else {
+            recognition.stop();
+            toggleBtn.textContent = 'Start Listening';
+            isListening = false;
+        }
+    });
+
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                transcriptTextarea.value += transcript + '\n';
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+    };
+
+    recognition.onend = () => {
+        toggleBtn.textContent = 'Start Listening';
+
+        isListening = false;
+    };
+};
+</script>
+
+</body>
+</html>
